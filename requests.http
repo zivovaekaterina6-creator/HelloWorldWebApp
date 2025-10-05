@@ -1,0 +1,13 @@
+GET http://localhost:5273/
+
+###
+GET http://localhost:5273/students
+
+###
+GET http://localhost:5273/students/1
+
+###
+GET http://localhost:5273/cities
+
+###
+GET http://localhost:5273/cities/1
