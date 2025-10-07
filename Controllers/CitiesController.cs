@@ -10,80 +10,59 @@ namespace HelloWorld.Controllers;
 [Route("cities")]
 public class CitiesController : ControllerBase
 {
+  private readonly ICitiesUpdater _citiesUpdater;
+  private readonly ICitiesProvider _citiesProvider;
+  private readonly IDataBase _dataBase;
+  private readonly IServiceProvider _serviceProvider;
+
+  public CitiesController(
+    IDataBase dataBase,
+    ICitiesProvider citiesProvider,
+    ICitiesUpdater citiesUpdater, 
+    IServiceProvider serviceProvider)
+  {
+    _dataBase = dataBase;
+    _citiesUpdater = citiesUpdater;
+    _serviceProvider = serviceProvider;
+    _citiesProvider = citiesProvider;
+  }
 
   [HttpGet]
   public CityDto[] GetCities()
   {
-    var cityDtos = Database.Cities
-    .Select(city => new CityDto
-    {
-      Id = city.Key,
-      Name = city.Value.Name,
-      Description = city.Value.Description
-    })
-    .ToArray();
-
-    return cityDtos;
+    Console.WriteLine(_dataBase.Id);
+    return _serviceProvider.GetRequiredService<ICitiesProvider>().GetCities();
   }
 
   [HttpPost]
   public Guid CreateCity([FromBody] CityAddRequest city)
   {
-    var newCity = new CityEntity
-    {
-      Id = Guid.NewGuid(),
-      Name = city.Name,
-      Description = city.Description
-    };
-
-    Database.Cities.Add(newCity.Id, newCity);
     
-    return newCity.Id;
+    Console.WriteLine(_dataBase.Id);
+    
+    return _citiesUpdater.CreateCity(city);
   }
 
   [HttpPut("{id}")]
   public Guid CreateOrUpdateCity([FromRoute] Guid id, [FromBody] CityAddRequest city)
   {
-    var newCity = new CityEntity
-    {
-      Id = id,
-      Name = city.Name,
-      Description = city.Description
-    };
-
-    Database.Cities[id] = newCity;
-
-    return id;
+    
+    Console.WriteLine(_dataBase.Id);
+    return _citiesUpdater.CreateOrUpdateCity(id, city);
   }
 
   [HttpGet("{id}")]
   public CityDto GetCity(Guid id)
   {
-
-    if (Database.Cities.TryGetValue(id, out var cityEntity))
-    {
-      return new CityDto
-      {
-        Id = cityEntity.Id,
-        Name = cityEntity.Name,
-        Description = cityEntity.Description
-      };
-    }
-
-    throw new NotFoundException(
-      $"City with Id {id} was not found");
+    
+    Console.WriteLine(_dataBase.Id);
+    return _citiesProvider.GetCity(id);
   }
   
   [HttpDelete("{id}")]
   public void DeleteCity(Guid id)
   {
-
-    if (Database.Cities.TryGetValue(id, out var cityEntity))
-    {
-      Database.Cities.Remove(id);
-    }
-
-    throw new NotFoundException(
-      $"City with Id {id} was not found");
+    Console.WriteLine(_dataBase.Id);
+    _citiesUpdater.DeleteCity(id);
   }
 }

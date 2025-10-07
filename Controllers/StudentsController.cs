@@ -10,10 +10,18 @@ namespace HelloWorld.Controllers;
 [Route("students")]
 public class StudentsController : ControllerBase
 {
+  
+  private readonly IDataBase _dataBase;
+
+  public StudentsController(IDataBase dataBase)
+  {
+    _dataBase = dataBase;
+  }
+  
   [HttpGet]
   public IActionResult GetStudents()
   {
-    var studentDtos = Database.Students.Values
+    var studentDtos = _dataBase.Students.Values
     .Select(student => new StudentDto
     {
       Id = student.Id,
@@ -41,7 +49,7 @@ public class StudentsController : ControllerBase
       Email = student.Email
     };
 
-    Database.Students.Add(newStudent.Id, newStudent);
+    _dataBase.Students.Add(newStudent.Id, newStudent);
 
     return Ok(newStudent.Id);
   }
@@ -59,7 +67,7 @@ public class StudentsController : ControllerBase
       Email = student.Email
     };
 
-    Database.Students[id] = newStudent;
+    _dataBase.Students[id] = newStudent;
 
     return Ok(id);
   }
@@ -67,7 +75,7 @@ public class StudentsController : ControllerBase
   [HttpGet("{id}")]
   public IActionResult GetStudent(Guid id)
   {
-    if (Database.Students.TryGetValue(id, out var studentEntity))
+    if (_dataBase.Students.TryGetValue(id, out var studentEntity))
     {
       return Ok(new StudentDto
       {
@@ -87,9 +95,9 @@ public class StudentsController : ControllerBase
   public IActionResult DeleteStudent(Guid id)
   {
 
-    if (Database.Students.ContainsKey(id))
+    if (_dataBase.Students.ContainsKey(id))
     {
-      Database.Students.Remove(id);
+      _dataBase.Students.Remove(id);
       return Ok();
     }
 

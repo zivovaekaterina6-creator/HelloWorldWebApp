@@ -2,9 +2,15 @@ using HelloWorld.Entities;
 
 namespace HelloWorld.Services;
 
-public static class Database
+public class Database : IDataBase
 {
-  public static Dictionary<Guid, CityEntity> Cities = new();
-  public static Dictionary<Guid, OrderEntity> Orders = new();
-  public static Dictionary<Guid, StudentEntity> Students = new();
+    public Guid Id { get; } = Guid.NewGuid();
+  public Dictionary<Guid, CityEntity> Cities { get; } = new();
+  public Dictionary<Guid, OrderEntity> Orders { get; } = new();
+  public Dictionary<Guid, StudentEntity> Students { get; } = new();
+
+  public Database()
+  {
+     Console.WriteLine("Created new instance");
+  }
 }
