@@ -1,3 +1,4 @@
+using HelloWorld.Data.Entities;
 using HelloWorld.Entities;
 
 namespace HelloWorld.Services;

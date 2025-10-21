@@ -1,7 +1,10 @@
+using HelloWorld.Data;
+using HelloWorld.Data.Entities;
 using HelloWorld.Dto.Cities;
 using HelloWorld.Entities;
 using HelloWorld.Exceptions;
 using HelloWorld.Services.Senders;
+using Microsoft.EntityFrameworkCore;
 
 namespace HelloWorld.Services;
 
@@ -10,26 +13,29 @@ public class CitiesService : ICitiesUpdater, ICitiesProvider
   private readonly IDataBase _dataBase;
   private readonly IDictionary<string, Lazy<IMessageSender>> _senders;
   private readonly IServiceProvider _serviceProvider;
+  private readonly ApplicationDbContext _applicationDbContext;
 
   public CitiesService(
     IDataBase dataBase,
     IEnumerable<IMessageSender> senders, 
-    IServiceProvider serviceProvider)
+    IServiceProvider serviceProvider,
+    ApplicationDbContext applicationDbContext)
   {
     _dataBase = dataBase;
     _serviceProvider = serviceProvider;
+    _applicationDbContext = applicationDbContext;
   }
 
   public CityDto[] GetCities()
       {
         Console.WriteLine(_dataBase.Id);
         
-        var cityDtos = _dataBase.Cities
+        var cityDtos = _applicationDbContext.Cities
         .Select(city => new CityDto
         {
-          Id = city.Key,
-          Name = city.Value.Name,
-          Description = city.Value.Description
+          Id = city.Id,
+          Name = city.Name,
+          Description = city.Description
         })
         .ToArray();
     
@@ -45,10 +51,12 @@ public class CitiesService : ICitiesUpdater, ICitiesProvider
         {
           Id = Guid.NewGuid(),
           Name = city.Name,
-          Description = city.Description
+          Description = city.Description,
+          About = ""
         };
     
-        _dataBase.Cities.Add(newCity.Id, newCity);
+        _applicationDbContext.Cities.Add(newCity);
+        _applicationDbContext.SaveChanges();
         
        //_serviceProvider.GetRequiredKeyedService<IMessageSender>("Sms").SendMessage($"Created city {newCity.Name}");
        _senders["SmsSender"].Value.SendMessage($"Created city {newCity.Name}"); 
@@ -65,10 +73,12 @@ public class CitiesService : ICitiesUpdater, ICitiesProvider
         {
           Id = id,
           Name = city.Name,
-          Description = city.Description
+          Description = city.Description,
+          About = ""
         };
     
-        _dataBase.Cities[id] = newCity;
+        _applicationDbContext.Cities.Attach(newCity);
+        _applicationDbContext.SaveChanges();
     
         return id;
       }
@@ -77,8 +87,9 @@ public class CitiesService : ICitiesUpdater, ICitiesProvider
       {
     
         Console.WriteLine(_dataBase.Id);
-        
-        if (_dataBase.Cities.TryGetValue(id, out var cityEntity))
+
+        var cityEntity = _applicationDbContext.Cities.Find(id);
+        if (cityEntity != null)
         {
           return new CityDto
           {
@@ -97,9 +108,11 @@ public class CitiesService : ICitiesUpdater, ICitiesProvider
 
         Console.WriteLine(_dataBase.Id);
         
-        if (_dataBase.Cities.TryGetValue(id, out var cityEntity))
+        var cityEntity = _applicationDbContext.Cities.Find(id);
+        
+        if (cityEntity != null)
         {
-          _dataBase.Cities.Remove(id);
+          _applicationDbContext.Cities.Remove(cityEntity);
         }
     
         throw new NotFoundException(

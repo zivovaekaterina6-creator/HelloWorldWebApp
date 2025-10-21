@@ -1,9 +1,11 @@
+using HelloWorld.Data;
 using HelloWorld.Dto.Orders;
 using HelloWorld.Entities;
 using HelloWorld.Exceptions;
 using HelloWorld.Filters;
 using HelloWorld.Services;
 using HelloWorld.Services.Senders;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -21,9 +23,15 @@ builder.Services.AddScoped<IMessageSender, EmailSender>();
 builder.Services.AddScoped<IMessageSender, SmsSender>();
 builder.Services.AddScoped<IMessageSender, TelegramSender>();
 
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+  options.UseNpgsql(builder.Configuration.GetConnectionString("ItisDatabase")));
+
+
 builder.Services.AddMvc(
   options => 
     options.Filters.Add<HttpExceptionFilter>());
+
 
 var app = builder.Build();
 
@@ -35,7 +43,7 @@ app.MapGet("/", () => "Hello World!")
 
 
 
-app.MapGet("/orders", (IDataBase dataBase) => dataBase.Orders.Values)
+app.MapGet("/orders", (IDataBase dataBase, IConfiguration configuration) => configuration["test"])
 .AddEndpointFilter<HttpExceptionEndPointFilter>();
 
 app.MapGet("/orders/{id}", (Guid id, IDataBase dataBase) =>

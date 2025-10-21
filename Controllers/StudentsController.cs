@@ -1,6 +1,6 @@
-using HelloWorld.Dto.Orders;
+using HelloWorld.Data;
+using HelloWorld.Data.Entities;
 using HelloWorld.Dto.Students;
-using HelloWorld.Entities;
 using HelloWorld.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,16 +12,18 @@ public class StudentsController : ControllerBase
 {
   
   private readonly IDataBase _dataBase;
+  private readonly ApplicationDbContext _applicationDbContext;
 
-  public StudentsController(IDataBase dataBase)
+  public StudentsController(IDataBase dataBase, ApplicationDbContext applicationDbContext)
   {
     _dataBase = dataBase;
+    _applicationDbContext = applicationDbContext;
   }
   
   [HttpGet]
   public IActionResult GetStudents()
   {
-    var studentDtos = _dataBase.Students.Values
+    var studentDtos = _applicationDbContext.Students
     .Select(student => new StudentDto
     {
       Id = student.Id,
@@ -46,10 +48,13 @@ public class StudentsController : ControllerBase
       Surname = student.Surname,
       Age = student.Age,
       Group = student.Group,
-      Email = student.Email
+      Email = student.Email,
+      CityId = student.CityId,
+      About = ""
     };
 
-    _dataBase.Students.Add(newStudent.Id, newStudent);
+    _applicationDbContext.Students.Add(newStudent);
+    _applicationDbContext.SaveChanges();
 
     return Ok(newStudent.Id);
   }
@@ -64,10 +69,13 @@ public class StudentsController : ControllerBase
       Surname = student.Surname,
       Age = student.Age,
       Group = student.Group,
-      Email = student.Email
+      Email = student.Email,
+      CityId = student.CityId,
+      About = ""
     };
 
-    _dataBase.Students[id] = newStudent;
+    _applicationDbContext.Students.Attach(newStudent);
+    _applicationDbContext.SaveChanges();
 
     return Ok(id);
   }
@@ -75,7 +83,8 @@ public class StudentsController : ControllerBase
   [HttpGet("{id}")]
   public IActionResult GetStudent(Guid id)
   {
-    if (_dataBase.Students.TryGetValue(id, out var studentEntity))
+    var studentEntity = _applicationDbContext.Students.Find(id);
+    if (studentEntity != null)
     {
       return Ok(new StudentDto
       {
@@ -95,9 +104,11 @@ public class StudentsController : ControllerBase
   public IActionResult DeleteStudent(Guid id)
   {
 
-    if (_dataBase.Students.ContainsKey(id))
+    var studentEntity = _applicationDbContext.Students.Find(id);
+    if (studentEntity != null)
     {
-      _dataBase.Students.Remove(id);
+      _applicationDbContext.Students.Remove(studentEntity);
+      _applicationDbContext.SaveChanges();
       return Ok();
     }
 

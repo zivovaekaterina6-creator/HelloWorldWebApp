@@ -24,4 +24,7 @@ public class StudentAddRequest
     [Required]
     [RegularExpression(@"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")]
     public required string Email { get; set; }
+    
+    [Required]
+    public required Guid CityId { get; set; }
 }
