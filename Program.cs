@@ -1,3 +1,4 @@
+using System.Reflection;
 using HelloWorld.Data;
 using HelloWorld.Dto.Orders;
 using HelloWorld.Entities;
@@ -5,7 +6,10 @@ using HelloWorld.Exceptions;
 using HelloWorld.Filters;
 using HelloWorld.Services;
 using HelloWorld.Services.Senders;
+using HelloWorld.Settings;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -22,9 +26,36 @@ builder.Services.AddScoped<ICitiesProvider, CitiesService>();
 builder.Services.AddScoped<IMessageSender, EmailSender>();
 builder.Services.AddScoped<IMessageSender, SmsSender>();
 builder.Services.AddScoped<IMessageSender, TelegramSender>();
+builder.Services.Configure<VkIntegration>(builder.Configuration);
 
+//builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+  options.SwaggerDoc("v1", new OpenApiInfo()
+  {
+    Version = "v1",
+    Title = "Itis example API",
+    Description = "An ASP.NET Core Web API application",
+    TermsOfService = new Uri("https://example.com/terms"),
+    Contact = new OpenApiContact
+    {
+      Name = "Example Contact",
+      Url = new Uri("https://example.com/contact")
+    },
+    License = new OpenApiLicense
+    {
+      Name = "Example License",
+      Url = new Uri("https://example.com/license")
+    }
+  });
+  
+  var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+  options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
+  options.UseNpgsql(builder.Configuration.GetConnectionString("ItisDatabase")));
+builder.Services.AddDbContext<OrdersDbContext>(options =>
   options.UseNpgsql(builder.Configuration.GetConnectionString("ItisDatabase")));
 
 
@@ -34,6 +65,8 @@ builder.Services.AddMvc(
 
 
 var app = builder.Build();
+app.UseSwaggerUI();
+app.UseSwagger();
 
 //app.UseMiddleware<HttpExceptionHandlerMiddleware>();
 app.MapControllers();
@@ -43,7 +76,7 @@ app.MapGet("/", () => "Hello World!")
 
 
 
-app.MapGet("/orders", (IDataBase dataBase, IConfiguration configuration) => configuration["test"])
+app.MapGet("/orders", (IDataBase dataBase, IOptions<VkIntegration> vkConfig) => vkConfig.Value.ApiKey + " " + vkConfig.Value.Retry)
 .AddEndpointFilter<HttpExceptionEndPointFilter>();
 
 app.MapGet("/orders/{id}", (Guid id, IDataBase dataBase) =>

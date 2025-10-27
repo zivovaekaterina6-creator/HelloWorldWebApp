@@ -13,13 +13,13 @@ public class CitiesService : ICitiesUpdater, ICitiesProvider
   private readonly IDataBase _dataBase;
   private readonly IDictionary<string, Lazy<IMessageSender>> _senders;
   private readonly IServiceProvider _serviceProvider;
-  private readonly ApplicationDbContext _applicationDbContext;
+  private readonly OrdersDbContext _applicationDbContext;
 
   public CitiesService(
     IDataBase dataBase,
     IEnumerable<IMessageSender> senders, 
     IServiceProvider serviceProvider,
-    ApplicationDbContext applicationDbContext)
+    OrdersDbContext applicationDbContext)
   {
     _dataBase = dataBase;
     _serviceProvider = serviceProvider;

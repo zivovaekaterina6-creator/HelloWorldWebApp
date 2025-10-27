@@ -19,9 +19,11 @@ public class CityEntity
   public string? Description { get; set; }
 
   [Column("people_count")]
-  public int PeopleCount { get; set; }
-  
+  public long PeopleCount { get; set; }
   
   [Column("about")]
   public required string? About { get; set; }
+  
+  [Column("location")]
+  public string Location { get; set; }
 }

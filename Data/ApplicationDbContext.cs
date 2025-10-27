@@ -4,10 +4,9 @@ using Microsoft.EntityFrameworkCore;
 namespace HelloWorld.Data;
 
 public sealed class ApplicationDbContext : DbContext
-{
-    public DbSet<CityEntity> Cities { get; set; } = null!;
+{ 
     public DbSet<StudentEntity> Students { get; set; } = null!;
-
+    
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {

@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HelloWorld.Controllers;
 
+
+/// <summary>
+/// Контроллер для работы с городами
+/// </summary>
 [ApiController]
 [Route("cities")]
 public class CitiesController : ControllerBase
@@ -27,6 +31,11 @@ public class CitiesController : ControllerBase
     _citiesProvider = citiesProvider;
   }
 
+  /// <summary>
+  /// Получение всех существующих городов в системе
+  /// </summary>
+  /// <exception cref="NotFoundException"> Генерируется исключение если город не найден</exception>
+  /// <returns>Список существующих городов</returns>
   [HttpGet]
   public CityDto[] GetCities()
   {
